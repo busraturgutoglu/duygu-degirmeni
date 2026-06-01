@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Duygularım</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; font-family:'Nunito',sans-serif; background:#FFF8EE; overflow:hidden; position:fixed; }
+
+  .screen { display:none; position:absolute; top:0; left:0; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
+  .screen.active { display:flex; }
+
+  /* EKRAN 1 */
+  #screen-welcome { background:linear-gradient(150deg,#FFF8EE,#FFE8CC); padding:24px; }
+  .welcome-card { background:#fff; border-radius:32px; padding:36px 28px; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,0.12); max-width:380px; width:100%; animation:popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .welcome-emoji { font-size:64px; display:block; margin-bottom:12px; animation:wave 2s infinite; }
+  @keyframes wave { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(15deg)} }
+  .welcome-title { font-family:'Fredoka One',cursive; font-size:32px; color:#FF6B6B; margin-bottom:6px; }
+  .welcome-sub { font-size:16px; color:#999; margin-bottom:22px; }
+  .name-input { width:100%; padding:14px 18px; font-size:20px; font-family:'Fredoka One',cursive; border:3px solid #FFD93D; border-radius:16px; outline:none; text-align:center; background:#FFFBF0; color:#333; margin-bottom:18px; transition:border-color .3s; }
+  .name-input:focus { border-color:#FF6B6B; }
+  .name-input::placeholder { color:#ccc; font-size:17px; }
+  .start-btn { background:linear-gradient(135deg,#FF6B6B,#FF9F43); color:#fff; border:none; padding:16px 40px; font-size:20px; font-family:'Fredoka One',cursive; border-radius:50px; cursor:pointer; box-shadow:0 8px 22px rgba(255,107,107,.4); touch-action:manipulation; }
+
+  /* EKRAN 2 */
+  #screen-select { background:linear-gradient(150deg,#FFF8EE,#FFE8CC); padding:20px 16px; gap:14px; }
+  .child-name-display { font-family:'Fredoka One',cursive; font-size:20px; color:#FF9F43; text-align:center; }
+  .select-title { font-family:'Fredoka One',cursive; font-size:24px; color:#FF6B6B; text-align:center; }
+  .emotions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:420px; }
+  .emotion-card:last-child { grid-column:2/3; }
+  .emotion-card { background:#fff; border-radius:20px; padding:18px 8px; text-align:center; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.09); border:3px solid transparent; animation:popIn .45s cubic-bezier(.34,1.56,.64,1) both; touch-action:manipulation; transition:transform .15s; }
+  .emotion-card:active { transform:scale(.92); }
+  .emotion-card:nth-child(1){animation-delay:.04s;border-color:#FFD93D}
+  .emotion-card:nth-child(2){animation-delay:.08s;border-color:#6BC5F8}
+  .emotion-card:nth-child(3){animation-delay:.12s;border-color:#FF6B6B}
+  .emotion-card:nth-child(4){animation-delay:.16s;border-color:#A78BFA}
+  .emotion-card:nth-child(5){animation-delay:.20s;border-color:#FF9F43}
+  .emotion-card:nth-child(6){animation-delay:.24s;border-color:#FF8FAB}
+  .emotion-card:nth-child(7){animation-delay:.28s;border-color:#B8A9C9}
+  .emotion-emoji { font-size:46px; display:block; }
+
+  /* EKRAN 3 */
+  #screen-activity { transition:background .7s ease; }
+  .activity-bg { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; overflow:hidden; pointer-events:none; }
+  .activity-content { position:relative; z-index:10; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+  .main-emoji { font-size:130px; display:block; filter:drop-shadow(0 10px 28px rgba(0,0,0,.15)); animation:float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+  .back-btn { position:absolute; top:20px; left:20px; background:rgba(255,255,255,.92); border:none; border-radius:50px; padding:10px 18px; font-size:16px; font-family:'Fredoka One',cursive; cursor:pointer; color:#555; z-index:20; box-shadow:0 4px 14px rgba(0,0,0,.12); touch-action:manipulation; }
+
+  /* ANİMASYON */
+  .confetti-piece { position:absolute; animation:cFall linear infinite; }
+  @keyframes cFall { 0%{transform:translateY(-20px) rotate(0);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:.4} }
+  .rain-drop { position:absolute; width:3px; height:18px; background:linear-gradient(to bottom,transparent,#6BC5F8); border-radius:3px; animation:rFall linear infinite; }
+  @keyframes rFall { 0%{transform:translateY(-30px);opacity:.9} 100%{transform:translateY(110vh);opacity:.2} }
+  .sun-el { position:absolute; font-size:80px; top:-120px; right:40px; animation:sunUp 1.2s ease forwards; z-index:5; }
+  @keyframes sunUp { from{top:-120px;opacity:0} to{top:30px;opacity:1} }
+  .balloon-el { position:absolute; bottom:80px; left:50%; transform:translateX(-50%); font-size:50px; z-index:5; }
+  .heartbeat-el { position:absolute; font-size:55px; animation:hPulse .85s ease infinite; z-index:5; opacity:0; }
+  @keyframes hPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+  .star-el { position:absolute; font-size:38px; animation:sTwinkle .6s ease infinite alternate; z-index:5; opacity:0; }
+  @keyframes sTwinkle{from{transform:scale(1) rotate(0);opacity:.7}to{transform:scale(1.3) rotate(20deg);opacity:1}}
+  .battery-wrap { position:absolute; bottom:55px; left:50%; transform:translateX(-50%); z-index:5; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .battery-outer { width:110px; height:46px; border:4px solid #fff; border-radius:10px; position:relative; overflow:hidden; background:rgba(255,255,255,.2); }
+  .battery-tip { position:absolute; right:-10px; top:50%; transform:translateY(-50%); width:7px; height:18px; background:#fff; border-radius:0 4px 4px 0; }
+  .battery-fill { height:100%; width:0%; background:linear-gradient(90deg,#4CAF50,#8BC34A); border-radius:6px; transition:width .25s ease; }
+  .battery-label { color:#fff; font-family:'Fredoka One',cursive; font-size:18px; }
+  .breath-circle { position:absolute; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,.35); top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; }
+
+  /* BİTİŞ */
+  .happy-end { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:50; opacity:0; pointer-events:none; transition:opacity .5s; }
+  .happy-end.show { opacity:1; pointer-events:all; }
+  .happy-end-emoji { font-size:150px; display:block; animation:popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  .happy-end-text { font-family:'Fredoka One',cursive; font-size:26px; color:#FF6B6B; margin-top:14px; text-align:center; padding:0 20px; }
+  .replay-btn { margin-top:22px; background:linear-gradient(135deg,#FF6B6B,#FF9F43); color:#fff; border:none; padding:14px 34px; font-size:19px; font-family:'Fredoka One',cursive; border-radius:50px; cursor:pointer; box-shadow:0 8px 22px rgba(255,107,107,.4); touch-action:manipulation; }
+</style>
+</head>
+<body>
+
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-card">
+    <span class="welcome-emoji">👋</span>
+    <h1 class="welcome-title">Merhaba!</h1>
+    <p class="welcome-sub">Adını yazar mısın?</p>
+    <input type="text" class="name-input" id="nameInput" placeholder="Adın nedir?" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="words"/>
+    <button class="start-btn" onclick="startApp()">Başlayalım! 🎉</button>
+  </div>
+</div>
+
+<div id="screen-select" class="screen">
+  <p class="child-name-display" id="childNameDisplay"></p>
+  <h2 class="select-title">Bugün nasıl hissediyorsun?</h2>
+  <div class="emotions-grid">
+    <div class="emotion-card" onclick="selectEmotion('mutlu')">  <span class="emotion-emoji">😊</span></div>
+    <div class="emotion-card" onclick="selectEmotion('uzgun')">  <span class="emotion-emoji">😢</span></div>
+    <div class="emotion-card" onclick="selectEmotion('kizgin')"> <span class="emotion-emoji">😠</span></div>
+    <div class="emotion-card" onclick="selectEmotion('korkmus')"><span class="emotion-emoji">😨</span></div>
+    <div class="emotion-card" onclick="selectEmotion('saskin')"> <span class="emotion-emoji">😲</span></div>
+    <div class="emotion-card" onclick="selectEmotion('utangac')"><span class="emotion-emoji">🫣</span></div>
+    <div class="emotion-card" onclick="selectEmotion('yorgun')"> <span class="emotion-emoji">😴</span></div>
+  </div>
+</div>
+
+<div id="screen-activity" class="screen">
+  <button class="back-btn" onclick="goBack()">← Geri</button>
+  <div class="activity-bg" id="activityBg"></div>
+  <div class="activity-content">
+    <span class="main-emoji" id="mainEmoji"></span>
+  </div>
+  <div class="happy-end" id="happyEnd">
+    <span class="happy-end-emoji" id="happyEndEmoji">😊</span>
+    <p class="happy-end-text" id="happyEndText"></p>
+    <button class="replay-btn" onclick="goBack()">Tekrar Seç 🎯</button>
+  </div>
+</div>
+
+<script>
+var childName = '';
+var timers = [];
+var winkIv = null;
+var speaking = false;
+
+// Her duygunun metin dizisi: {text, pause} — pause = sonrasında bekleme (ms)
+var emotionScripts = {
+  mutlu: {
+    emoji:'😊', bg:'linear-gradient(135deg,#FFD93D,#FF9F43)', end:'Müthişsin! 🎉',
+    lines:[
+      {t:'Aaaaa!', p:300},
+      {t:'__isim__', p:300},
+      {t:'mutlu hissediyor! Bu harika! Bunu kutlamalıyız!', p:500},
+      {t:'Hadi şimdi ayağa kalkalım ve zıplayalım!', p:5000},
+      {t:'Şimdi de alkışlayarak zıplamaya devam edelim!', p:5000},
+      {t:'Şimdi etrafımızda dönerek dans edelim!', p:5000},
+      {t:'Yorulduk. Artık biraz dinlenelim.', p:1000}
+    ]
+  },
+  uzgun: {
+    emoji:'😢', bg:'linear-gradient(135deg,#6BC5F8,#4A90D9)', end:'Güneş açtı! ☀️',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'üzgün hissediyor. Bazen kendimizi üzgün hissederiz, bu çok normaldir. Bu duyguyla başa çıkabiliriz!', p:500},
+      {t:'Hadi kalk ve üzüntüleri yağmur gibi yağdır ellerinle!', p:5000},
+      {t:'Şimdi de ellerinle güneş açtır!', p:500},
+      {t:'Aç... kapa... aç... kapa... aç... kapa... aç... kapa... aç... kapa...', p:1000},
+      {t:'Bak gördün mü!? Üzüntü yağdı, sonra güneş açtı. Unutma, her üzüntü geçicidir.', p:1000}
+    ]
+  },
+  kizgin: {
+    emoji:'😠', bg:'linear-gradient(135deg,#FF6B6B,#EE5A24)', end:'Öfke balonunu patlattın! 💪',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'kızgın hissediyor. Bazen işler istediğimiz gibi gitmeyince kızgın ve öfkeli hissedebiliriz. Bu normaldir. Fakat öfkemizi kontrol etmeliyiz!', p:500},
+      {t:'Şimdi ellerini yumruk yap ve avuçlarında bir balon varmış gibi düşün. Avucunun içindeki balonu şişirir gibi yumruk yaptığın eline üfle ve şişir!', p:2000},
+      {t:'Derin bir nefes al ve daha güçlü üfle balona!', p:2000},
+      {t:'Derin bir nefes al ve daha güçlü üfle balona!', p:2000},
+      {t:'Derin bir nefes al ve daha güçlü üfle balona!', p:1000},
+      {t:'Şimdi kocaman şişirdiğin o balonu patlat!', p:500},
+      {t:'Hoopp! Öfke balonu patladı, kızgınlık bitti!', p:500},
+      {t:'Kendini öfkeli ve kızgın hissettiğinde balon şişirmeyi unutma!', p:1000}
+    ]
+  },
+  korkmus: {
+    emoji:'😨', bg:'linear-gradient(135deg,#A78BFA,#7C3AED)', end:'Korkunu yendin! 💪',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'kendini korkmuş hissediyor. Bu çok normal, çünkü hepimiz bazı durumlarda korkmuş hissedebiliriz ve bunu yenebiliriz!', p:500},
+      {t:'Öyleyse şimdi kalbimizi dinleyelim, nasıl atıyor?', p:500},
+      {t:'Güm! Güm! Güm!', p:2000},
+      {t:'Peki şimdi de kalbimizin sesiyle bir şarkı söyleyelim ve korkumuzu yok edelim!', p:500},
+      {t:'Bir... iki... üç...', p:800},
+      {t:'Güm güm güm güm, tatlı bir kedi gördüm, güm güm güm güm, tatlı kediye güldüm!', p:1000},
+      {t:'Aa yendik!', p:1000}
+    ]
+  },
+  saskin: {
+    emoji:'😲', bg:'linear-gradient(135deg,#FF9F43,#F7B731)', end:'Ne kadar şaşırdık! ✨',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'kendini şaşırmış hissediyor. Neye şaşırdı acaba? Hadi şimdi birlikte şaşıralım!', p:500},
+      {t:'Ellerinle gözlerini kapat ve aç! Aaaaa!', p:1500},
+      {t:'Kapat... aç... Aaaaa!', p:1500},
+      {t:'Kapat... aç... Aaaaa!', p:1500},
+      {t:'Şimdi de ellerinle ağzını kapat ve aç! Aaaaa!', p:1500},
+      {t:'Kapat... aç... Aaaaa!', p:1500},
+      {t:'Kapat... aç... Aaaaa!', p:1000},
+      {t:'Bugün ne kadar çok şaşırdık değil mi!', p:1000}
+    ]
+  },
+  utangac: {
+    emoji:'🫣', bg:'linear-gradient(135deg,#FF8FAB,#E84393)', end:'Kendine çok iyi baktın! 🤗',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'kendini utanmış hissediyor. Bazen yeni tanıştığımız kişilerin yanında ya da yeni bir şeyler denerken kendimizi utanmış ve çekingen hissedebiliriz. Bu çok normaldir! Şimdi bu duyguyu yönetelim.', p:500},
+      {t:'Derin bir nefes al...', p:1500},
+      {t:'ve zıpla!', p:1500},
+      {t:'Tekrar nefes al...', p:1500},
+      {t:'ve zıpla!', p:1500},
+      {t:'Tekrar nefes al...', p:1500},
+      {t:'ve zıpla!', p:1000},
+      {t:'Şimdi kollarını aç, iyice aç ve kendine kocaman sarıl!', p:1500},
+      {t:'Kollarını aç... ve sarıl!', p:1500},
+      {t:'Kollarını aç... ve sarıl!', p:1000},
+      {t:'Unutma, bu çok doğal ve geçici bir duygu. Kendine güven ve rahatla!', p:1000}
+    ]
+  },
+  yorgun: {
+    emoji:'😴', bg:'linear-gradient(135deg,#B8A9C9,#8B7BA8)', end:'Şarjın doldu! ⚡',
+    lines:[
+      {t:'Aaaaa...', p:300},
+      {t:'__isim__', p:300},
+      {t:'kendini yorgun hissediyor. Enerjin bitmiş olmalı. Öyleyse hemen şarj olmaya başlayalım!', p:500},
+      {t:'Yere yat ve hiç kıpırdama!', p:500},
+      {t:'Bir... iki... üç... dört... beş...', p:500},
+      {t:'Şarjın dolmaya başladı. Eveeett şarj dolmaya devam ediyor!', p:3000},
+      {t:'Şarjın dolmuş olmalı. Hadi deneyelim!', p:500},
+      {t:'Sağ kolunu kaldır!', p:2000},
+      {t:'Sol kolunu kaldır!', p:2000},
+      {t:'Şimdi kollarını iyice aç ve esneyerek rahatla!', p:1500},
+      {t:'Toparlan ve ayağa kalk!', p:1000},
+      {t:'Harika! İşte bu kadar!', p:1000}
+    ]
+  }
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function clearTimers() {
+  timers.forEach(function(t){ clearTimeout(t); clearInterval(t); });
+  timers = [];
+  if (winkIv) { clearInterval(winkIv); winkIv = null; }
+}
+
+function safeCancel() {
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch(e){}
+}
+
+function startApp() {
+  var v = document.getElementById('nameInput').value.trim();
+  if (!v) {
+    document.getElementById('nameInput').style.borderColor = '#FF6B6B';
+    document.getElementById('nameInput').placeholder = 'Lütfen adını yaz! 😊';
+    return;
+  }
+  childName = v;
+  document.getElementById('childNameDisplay').textContent = '👋 Merhaba, ' + childName + '!';
+  showScreen('screen-select');
+}
+
+document.getElementById('nameInput').addEventListener('keypress', function(e){
+  if (e.key === 'Enter') startApp();
+});
+
+function selectEmotion(key) {
+  var em = emotionScripts[key];
+  clearTimers();
+  safeCancel();
+
+  document.getElementById('screen-activity').style.background = em.bg;
+  document.getElementById('mainEmoji').textContent = em.emoji;
+  document.getElementById('activityBg').innerHTML = '';
+  document.getElementById('happyEnd').classList.remove('show');
+
+  showScreen('screen-activity');
+  startAnim(key);
+  runScript(em);
+}
+
+function goBack() {
+  clearTimers();
+  safeCancel();
+  document.getElementById('happyEnd').classList.remove('show');
+  document.getElementById('activityBg').innerHTML = '';
+  showScreen('screen-select');
+}
+
+/* ---- TTS AKIŞI ---- */
+function runScript(em) {
+  var lines = em.lines.slice(); // kopya
+  var idx = 0;
+
+  function next() {
+    if (idx >= lines.length) {
+      // bitti
+      var t = setTimeout(function(){ showEnd(em); }, 800);
+      timers.push(t);
+      return;
+    }
+    var line = lines[idx];
+    idx++;
+
+    // isim satırı
+    var text = line.t === '__isim__' ? childName : line.t;
+
+    speakLine(text, line.p, function(){
+      next();
+    });
+  }
+
+  next();
+}
+
+function speakLine(text, pauseAfter, callback) {
+  if (!window.speechSynthesis) {
+    var t = setTimeout(callback, 1000 + pauseAfter);
+    timers.push(t);
+    return;
+  }
+  safeCancel();
+
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'tr-TR';
+  u.rate = 0.88;
+  u.pitch = 1.1;
+
+  var done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    var t = setTimeout(callback, pauseAfter);
+    timers.push(t);
+  }
+
+  u.onend   = finish;
+  u.onerror = finish;
+
+  try {
+    window.speechSynthesis.speak(u);
+  } catch(e) {
+    finish();
+  }
+}
+
+function showEnd(em) {
+  document.getElementById('happyEndEmoji').textContent = '😊';
+  document.getElementById('happyEndText').textContent  = em.end;
+  document.getElementById('happyEnd').classList.add('show');
+  var w = false;
+  winkIv = setInterval(function(){
+    document.getElementById('happyEndEmoji').textContent = w ? '😊' : '😉';
+    w = !w;
+  }, 1000);
+}
+
+/* ---- ANİMASYONLAR ---- */
+function startAnim(key) {
+  var bg = document.getElementById('activityBg');
+  bg.innerHTML = '';
+  if (key==='mutlu')   animConfetti(bg);
+  if (key==='uzgun')   animRain(bg);
+  if (key==='kizgin')  animBalloon(bg);
+  if (key==='korkmus') animHeart(bg);
+  if (key==='saskin')  animStars(bg);
+  if (key==='utangac') animBreath(bg);
+  if (key==='yorgun')  animBattery(bg);
+}
+
+function animConfetti(bg) {
+  var colors=['#FFD93D','#FF6B6B','#6BC5F8','#A78BFA','#FF9F43','#FF8FAB'];
+  for(var i=0;i<35;i++){
+    var p=document.createElement('div'); p.className='confetti-piece';
+    var sz=(8+Math.random()*10)+'px';
+    p.style.cssText='left:'+Math.floor(Math.random()*100)+'%;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*3+'s;width:'+sz+';height:'+sz+';border-radius:'+(Math.random()>.5?'50%':'3px')+';';
+    bg.appendChild(p);
+  }
+}
+
+function animRain(bg) {
+  var rc=document.createElement('div'); rc.style.cssText='position:absolute;width:100%;height:100%;';
+  for(var i=0;i<28;i++){
+    var d=document.createElement('div'); d.className='rain-drop';
+    d.style.cssText='left:'+Math.floor(Math.random()*100)+'%;animation-duration:'+(0.7+Math.random()*.8)+'s;animation-delay:'+Math.random()*2+'s;';
+    rc.appendChild(d);
+  }
+  bg.appendChild(rc);
+  var t=setTimeout(function(){
+    rc.style.transition='opacity 1s'; rc.style.opacity='0';
+    var sun=document.createElement('div'); sun.className='sun-el'; sun.textContent='☀️';
+    bg.appendChild(sun);
+  },10000);
+  timers.push(t);
+}
+
+function animBalloon(bg) {
+  var b=document.createElement('div'); b.className='balloon-el'; b.textContent='🎈'; bg.appendChild(b);
+  var size=50;
+  var iv=setInterval(function(){
+    size+=2; b.style.fontSize=size+'px';
+    if(size>=130){ clearInterval(iv); b.style.transition='all .3s'; b.style.fontSize='4px'; b.style.opacity='0'; }
+  },200);
+  timers.push(iv);
+}
+
+function animHeart(bg) {
+  var pos=[{t:'18%',l:'8%'},{t:'55%',l:'75%'},{t:'25%',l:'72%'},{t:'68%',l:'12%'}];
+  pos.forEach(function(p,i){
+    var h=document.createElement('div'); h.className='heartbeat-el'; h.textContent='💓';
+    h.style.top=p.t; h.style.left=p.l; h.style.animationDelay=(i*.2)+'s';
+    bg.appendChild(h);
+    var t=setTimeout(function(){ h.style.opacity='1'; },i*400); timers.push(t);
+  });
+}
+
+function animStars(bg) {
+  var sp=[{t:'8%',l:'12%'},{t:'18%',l:'75%'},{t:'65%',l:'5%'},{t:'58%',l:'80%'},{t:'38%',l:'82%'},{t:'80%',l:'38%'}];
+  sp.forEach(function(p,i){
+    var s=document.createElement('div'); s.className='star-el'; s.textContent='✨';
+    s.style.top=p.t; s.style.left=p.l; s.style.animationDelay=(i*.25)+'s';
+    bg.appendChild(s);
+    var t=setTimeout(function(){ s.style.opacity='1'; },i*300); timers.push(t);
+  });
+}
+
+function animBreath(bg) {
+  var c=document.createElement('div'); c.className='breath-circle'; bg.appendChild(c);
+  function cycle(){
+    c.style.transition='none'; c.style.transform='translate(-50%,-50%) scale(1)'; c.style.opacity='.6';
+    var t=setTimeout(function(){
+      c.style.transition='transform 2s ease,opacity 2s ease';
+      c.style.transform='translate(-50%,-50%) scale(3.5)'; c.style.opacity='0';
+    },100);
+    timers.push(t);
+  }
+  cycle();
+  var iv=setInterval(cycle,4000); timers.push(iv);
+}
+
+function animBattery(bg) {
+  var wrap=document.createElement('div'); wrap.className='battery-wrap';
+  wrap.innerHTML='<div class="battery-outer"><div class="battery-fill" id="bFill"></div><div class="battery-tip"></div></div><div class="battery-label" id="bLabel">⚡ Şarj oluyor...</div>';
+  bg.appendChild(wrap);
+  var charge=0;
+  var iv=setInterval(function(){
+    charge+=1;
+    var f=document.getElementById('bFill');
+    var l=document.getElementById('bLabel');
+    if(f) f.style.width=charge+'%';
+    if(charge>=100){ clearInterval(iv); if(l) l.textContent='⚡ Şarj Doldu!'; }
+  },300);
+  timers.push(iv);
+}
+</script>
+</body>
+</html>
